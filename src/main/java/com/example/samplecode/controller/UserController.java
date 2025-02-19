@@ -1,7 +1,10 @@
 package com.example.samplecode.controller;
 
 import com.example.samplecode.dto.request.UserRequestDTO;
+import com.example.samplecode.dto.response.ResponseData;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -10,45 +13,50 @@ import java.util.List;
 @RequestMapping("/api/v1/user")
 public class UserController {
 
-//    @GetMapping("/")
-//    public List<UserRequestDTO> getUsers(
-//            @RequestParam(value = "email", required = false) String email,
-//            @RequestParam(value = "page", defaultValue = "0") int pageNo,
-//            @RequestParam(value = "limit", defaultValue = "10") int pageSize) {
-//        System.out.println("Get all users");
-//        return List.of(
-//                new UserRequestDTO("John" , "Doe", "jonh@gmail.com", "1234567890"),
-//                new UserRequestDTO("Jane", "Doe", "jane@gmail.com", "0987654321"));
-//    }
-//
-//    @GetMapping(value = "/{userId}", produces = "application/json")
-//    public UserRequestDTO getUser(@PathVariable Long userId) {
-//        System.out.println("User id: " + userId);
-//        return new UserRequestDTO("John" , "Doe", "john@gmail.com", "1234567890");
-//    }
+    @GetMapping("/")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseData<List<UserRequestDTO>> getUsers(
+            @RequestParam(value = "email", required = false) String email,
+            @RequestParam(value = "page", defaultValue = "0") int pageNo,
+            @RequestParam(value = "limit", defaultValue = "10") int pageSize) {
+        System.out.println("Get all users");
+        return new ResponseData<>(HttpStatus.OK.value(), "User found", List.of(
+                new UserRequestDTO("John" , "Doe", "john@gmail.com", "1234567890"),
+                new UserRequestDTO("Jane", "Doe", "jane@gmail.com", "0987654321")));
+    }
+
+    @GetMapping("/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseData<UserRequestDTO> getUser(@PathVariable @Min(1) Long userId) {
+        System.out.println("User id: " + userId);
+        return new ResponseData<>(HttpStatus.OK.value(), "User found", new UserRequestDTO("John" , "Doe", "john@gmail.com", "1234567890"));
+    }
 
     @PostMapping("/add")
-//    @RequestMapping(method = RequestMethod.POST, value = "/", headers = "api-key=1234")
-    public String createUser(@Valid @RequestBody UserRequestDTO userRequestDTO) {
-        return "User created";
+    public ResponseData<Integer> createUser(@Valid @RequestBody UserRequestDTO userRequestDTO) {
+        System.out.println("Request: " + userRequestDTO.getFirstName());
+        return new ResponseData<>(HttpStatus.CREATED.value(), "User created successful", 1);
     }
 
     @PutMapping("/{userId}")
-    public String updateUser(@PathVariable("userId") Long id, @Valid @RequestBody UserRequestDTO userRequestDTO) {
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public ResponseData<?> updateUser(@PathVariable("userId") Long id, @Valid @RequestBody UserRequestDTO userRequestDTO) {
         System.out.println("User id: " + id);
-        return "User updated";
+        return new ResponseData<>(HttpStatus.ACCEPTED.value(), "User updated successful", 1);
     }
 
     @PatchMapping("/{userId}")
-    public String changeStatus(@PathVariable("userId") Long id, @RequestParam(value = "status", required = false) boolean status) {
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public ResponseData<?> changeStatus(@PathVariable("userId") Long id, @RequestParam(value = "status", required = false) boolean status) {
         System.out.println("User id: " + id);
         System.out.println("Status: " + status);
-        return "Status changed";
+        return new ResponseData<>(HttpStatus.ACCEPTED.value(), "Status changed successful");
     }
 
     @DeleteMapping("/{userId}")
-    public String deleteUser(@PathVariable("userId") Long id) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ResponseData<?> deleteUser(@PathVariable("userId") @Min(value = 1, message = "userId must be greater than 0") Long id) {
         System.out.println("User id: " + id);
-        return "User deleted";
+        return new ResponseData<>(HttpStatus.NO_CONTENT.value(), "User deleted successful");
     }
 }

@@ -59,6 +59,13 @@ public class UserRequestDTO implements Serializable {
     public UserRequestDTO() {
     }
 
+    public UserRequestDTO(String firstName, String lastName, String email, String phone) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.phone = phone;
+    }
+
     public UserRequestDTO(String firstName, String lastName, String email, String phone, Date dateOfBirth, String username, String password, Set<Address> address, UserStatus status) {
         this.firstName = firstName;
         this.lastName = lastName;
