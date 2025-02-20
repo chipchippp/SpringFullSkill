@@ -1,4 +1,4 @@
-package com.example.samplecode.util;
+package com.example.samplecode.dto.validator;
 
 public enum Gender {
     MALE,

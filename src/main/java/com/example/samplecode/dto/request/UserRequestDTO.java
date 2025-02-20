@@ -1,17 +1,17 @@
 package com.example.samplecode.dto.request;
 
+import com.example.samplecode.dto.validator.*;
 import com.example.samplecode.model.Address;
 import com.example.samplecode.util.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
-import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 
-import static com.example.samplecode.util.Gender.*;
+import static com.example.samplecode.dto.validator.Gender.*;
 
 //@Setter
 //@Getter

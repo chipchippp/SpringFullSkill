@@ -1,4 +1,4 @@
-package com.example.samplecode.util;
+package com.example.samplecode.dto.validator;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

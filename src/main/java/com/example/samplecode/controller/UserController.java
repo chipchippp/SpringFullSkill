@@ -2,23 +2,29 @@ package com.example.samplecode.controller;
 
 import com.example.samplecode.dto.request.UserRequestDTO;
 import com.example.samplecode.dto.response.ResponseData;
+import com.example.samplecode.service.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/user")
+@Slf4j
 public class UserController {
+    private UserService userService;
 
-    @GetMapping("/")
+
+    @GetMapping("/list")
     @ResponseStatus(HttpStatus.OK)
     public ResponseData<List<UserRequestDTO>> getUsers(
-            @RequestParam(value = "email", required = false) String email,
-            @RequestParam(value = "page", defaultValue = "0") int pageNo,
-            @RequestParam(value = "limit", defaultValue = "10") int pageSize) {
+            @RequestParam(defaultValue = "0", required = false) int pageNo,
+            @Min(10) @RequestParam(defaultValue = "20", required = false) int pageSize) {
         System.out.println("Get all users");
         return new ResponseData<>(HttpStatus.OK.value(), "User found", List.of(
                 new UserRequestDTO("John" , "Doe", "john@gmail.com", "1234567890"),
@@ -35,20 +41,25 @@ public class UserController {
     @PostMapping("/add")
     public ResponseData<Integer> createUser(@Valid @RequestBody UserRequestDTO userRequestDTO) {
         System.out.println("Request: " + userRequestDTO.getFirstName());
-        return new ResponseData<>(HttpStatus.CREATED.value(), "User created successful", 1);
+        try {
+            userService.addUser(userRequestDTO);
+            return new ResponseData<>(HttpStatus.CREATED.value(), "User created successful");
+        } catch (Exception e) {
+            return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), "save creation failed!!!");
+        }
     }
 
     @PutMapping("/{userId}")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public ResponseData<?> updateUser(@PathVariable("userId") Long id, @Valid @RequestBody UserRequestDTO userRequestDTO) {
-        System.out.println("User id: " + id);
-        return new ResponseData<>(HttpStatus.ACCEPTED.value(), "User updated successful", 1);
+    public ResponseData<?> updateUser(@PathVariable @Min(1) Long userId, @Valid @RequestBody UserRequestDTO userRequestDTO) {
+        System.out.println("User id: " + userId);
+        return new ResponseData<>(HttpStatus.ACCEPTED.value(), "User updated successful");
     }
 
     @PatchMapping("/{userId}")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public ResponseData<?> changeStatus(@PathVariable("userId") Long id, @RequestParam(value = "status", required = false) boolean status) {
-        System.out.println("User id: " + id);
+    public ResponseData<?> changeStatus(@Min(1) @PathVariable Long userId, @RequestParam(value = "status", required = false) boolean status) {
+        System.out.println("User id: " + userId);
         System.out.println("Status: " + status);
         return new ResponseData<>(HttpStatus.ACCEPTED.value(), "Status changed successful");
     }
