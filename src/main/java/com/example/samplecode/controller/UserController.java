@@ -1,5 +1,6 @@
 package com.example.samplecode.controller;
 
+import com.example.samplecode.configuration.Translator;
 import com.example.samplecode.dto.request.UserRequestDTO;
 import com.example.samplecode.dto.response.ResponseData;
 import com.example.samplecode.service.UserService;
@@ -42,12 +43,12 @@ public class UserController {
 
     @PostMapping("/add")
     public ResponseData<Integer> createUser(@Valid @RequestBody UserRequestDTO userRequestDTO) {
-        log.info("Request add user = {} {}: " + userRequestDTO.getFirstName(), userRequestDTO.getLastName());
+        log.info("Request add user = {} {}: ", userRequestDTO.getFirstName(), userRequestDTO.getLastName());
         try {
-//            userService.addUser(userRequestDTO);
-            return new ResponseData<>(HttpStatus.CREATED.value(), "User created successful");
+            userService.addUser(userRequestDTO);
+            return new ResponseData<>(HttpStatus.CREATED.value(), Translator.toLocale("user.add.success"));
         } catch (Exception e) {
-            return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), "save creation failed!!!");
+            return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), Translator.toLocale("user.error"));
         }
     }
 
@@ -55,20 +56,20 @@ public class UserController {
     @ResponseStatus(HttpStatus.ACCEPTED)
     public ResponseData<?> updateUser(@PathVariable @Min(1) Long userId, @Valid @RequestBody UserRequestDTO userRequestDTO) {
         log.info("User id = {} ", userId);
-        return new ResponseData<>(HttpStatus.ACCEPTED.value(), "User updated successful");
+        return new ResponseData<>(HttpStatus.ACCEPTED.value(), Translator.toLocale("user.update.success"));
     }
 
     @PatchMapping("/{userId}")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public ResponseData<?> changeStatus(@Min(1) @PathVariable Long userId, @RequestParam(value = "status", required = false) boolean status) {
         log.info("User id = {} ", userId);
-        return new ResponseData<>(HttpStatus.ACCEPTED.value(), "Status changed successful");
+        return new ResponseData<>(HttpStatus.ACCEPTED.value(), Translator.toLocale("user.update.success"));
     }
 
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseData<?> deleteUser(@PathVariable("userId") @Min(value = 1, message = "userId must be greater than 0") Long id) {
         log.info("User id = {} ", id);
-        return new ResponseData<>(HttpStatus.NO_CONTENT.value(), "User deleted successful");
+        return new ResponseData<>(HttpStatus.NO_CONTENT.value(), Translator.toLocale("user.delete.success"));
     }
 }
