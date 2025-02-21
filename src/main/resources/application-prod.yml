@@ -1,0 +1,13 @@
+server:
+  port: 8082
+spring:
+  config:
+    activate:
+      on-profile: prod
+open:
+  api:
+    title: Sample Code
+    version: v1.0.0
+    description: Sample Code
+    serverUrl: http://localhost:${server.port}
+    serverName: server test
