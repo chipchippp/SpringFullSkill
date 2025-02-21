@@ -1,12 +1,17 @@
-server:
-  port: 8082
 spring:
   config:
     activate:
       on-profile: prod
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
 open:
   api:
-    title: Sample Code
+    title: ${API_TITLE:DUMMY-API-TITLE}
     version: v1.0.0
     description: Sample Code
     serverUrl: http://localhost:${server.port}

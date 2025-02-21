@@ -1,0 +1,33 @@
+version: '3.9'
+
+services:
+  api-service:
+    container_name: api-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - '8888:8080'
+    networks:
+      - backend
+
+  api-service-test:
+    container_name: api-service-2
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8889:8080'
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+# docker-compose up -d
+# docker-compose down -v
+# docker-compose ps -a
+# docker-compose logs -tf

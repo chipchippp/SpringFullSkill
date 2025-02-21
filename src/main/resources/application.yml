@@ -5,3 +5,5 @@ spring:
     active: @spring.profiles.active@
 # mvn clean package -P dev
 # java -jar .\target\sample-code-0.0.1-SNAPSHOT.jar
+server:
+  port: 8888
