@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: sample-code
+
+open:
+  api:
+    title: Sample Code
+    version: v1.0.0
+    description: Sample Code
+    serverUrl: http://localhost:8080
+    serverName: server test
