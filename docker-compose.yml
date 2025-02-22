@@ -13,16 +13,6 @@ services:
     networks:
       - backend
 
-  api-service-test:
-    container_name: api-service-2
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - '8889:8080'
-    networks:
-      - backend
-
 networks:
   backend:
     driver: bridge

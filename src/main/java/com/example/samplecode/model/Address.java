@@ -1,99 +1,36 @@
 package com.example.samplecode.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
-//@Getter
-//@Setter
-//@NoArgsConstructor
-//@AllArgsConstructor
-public class Address {
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity(name = "tbl_address")
+public class Address extends AbstractEntity {
+
+    @Column(name = "apartment_number")
     private String apartmentNumber;
+    @Column(name = "floor")
     private String floor;
+    @Column(name = "building")
     private String building;
+
+    @Column(name = "street_number")
     private String streetNumber;
+    @Column(name = "street")
     private String street;
+    @Column(name = "city")
     private String city;
+    @Column(name = "country")
     private String country;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Column(name = "address_type")
     private Integer addressType;
-
-    public Address() {
-    }
-
-    public Address(String apartmentNumber, String floor, String building, String streetNumber, String street, String city, String country, Integer addressType) {
-        this.apartmentNumber = apartmentNumber;
-        this.floor = floor;
-        this.building = building;
-        this.streetNumber = streetNumber;
-        this.street = street;
-        this.city = city;
-        this.country = country;
-        this.addressType = addressType;
-    }
-
-    public String getApartmentNumber() {
-        return apartmentNumber;
-    }
-
-    public void setApartmentNumber(String apartmentNumber) {
-        this.apartmentNumber = apartmentNumber;
-    }
-
-    public String getFloor() {
-        return floor;
-    }
-
-    public void setFloor(String floor) {
-        this.floor = floor;
-    }
-
-    public String getBuilding() {
-        return building;
-    }
-
-    public void setBuilding(String building) {
-        this.building = building;
-    }
-
-    public String getStreetNumber() {
-        return streetNumber;
-    }
-
-    public void setStreetNumber(String streetNumber) {
-        this.streetNumber = streetNumber;
-    }
-
-    public String getStreet() {
-        return street;
-    }
-
-    public void setStreet(String street) {
-        this.street = street;
-    }
-
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
-    }
-
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
-    public Integer getAddressType() {
-        return addressType;
-    }
-
-    public void setAddressType(Integer addressType) {
-        this.addressType = addressType;
-    }
 }

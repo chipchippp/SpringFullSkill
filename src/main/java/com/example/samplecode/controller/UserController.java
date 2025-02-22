@@ -3,6 +3,7 @@ package com.example.samplecode.controller;
 import com.example.samplecode.configuration.Translator;
 import com.example.samplecode.dto.request.UserRequestDTO;
 import com.example.samplecode.dto.response.ResponseData;
+import com.example.samplecode.dto.response.ResponseError;
 import com.example.samplecode.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,47 +14,51 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/user")
 @Slf4j
 @Tag(name = "User Controller", description = "User API")
 public class UserController {
-    //    @Autowired
     private final UserService userService;
 
-
-    @Operation(summary = "Get all users", description = "Get all users")
-    @GetMapping("/list")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseData<List<UserRequestDTO>> getUsers(
-            @RequestParam(defaultValue = "0", required = false) int pageNo,
-            @Min(10) @RequestParam(defaultValue = "20", required = false) int pageSize) {
-        log.info("Get all users");
-        return new ResponseData<>(HttpStatus.OK.value(), "User found", List.of(
-                new UserRequestDTO("John", "Doe", "john@gmail.com", "1234567890"),
-                new UserRequestDTO("Jane", "Doe", "jane@gmail.com", "0987654321")));
-    }
-
-    @Operation(summary = "Get user by id", description = "Get user by id")
-    @GetMapping("/{userId}")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseData<UserRequestDTO> getUser(@PathVariable @Min(1) Long userId) {
-        log.info("User id: " + userId);
-        return new ResponseData<>(HttpStatus.OK.value(), "User found", new UserRequestDTO("John", "Doe", "john@gmail.com", "1234567890"));
-    }
+//    @Operation(summary = "Get all users", description = "Get all users")
+//    @GetMapping("/list")
+//    @ResponseStatus(HttpStatus.OK)
+//    public ResponseData<List<UserRequestDTO>> getUsers(
+//            @RequestParam(defaultValue = "0", required = false) int pageNo,
+//            @Min(10) @RequestParam(defaultValue = "20", required = false) int pageSize) {
+//        log.info("Get all users");
+//
+//        try {
+//            userService.getAllUsers(pageNo, pageSize);
+//        } catch (Exception e) {
+//            return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), "User not found");
+//        }
+//
+//        return new ResponseData<>(HttpStatus.OK.value(), "User found", List.of(
+//                new UserRequestDTO("John", "Doe", "john@gmail.com", "1234567890"),
+//                new UserRequestDTO("Jane", "Doe", "jane@gmail.com", "0987654321")));
+//    }
+//
+//    @Operation(summary = "Get user by id", description = "Get user by id")
+//    @GetMapping("/{userId}")
+//    @ResponseStatus(HttpStatus.OK)
+//    public ResponseData<UserRequestDTO> getUser(@PathVariable @Min(1) Long userId) {
+//        log.info("User id: " + userId);
+//        return new ResponseData<>(HttpStatus.OK.value(), "User found", new UserRequestDTO("John", "Doe", "john@gmail.com", "1234567890"));
+//    }
 
     @Operation(summary = "Add user", description = "Add user")
     @PostMapping("/add")
-    public ResponseData<Integer> createUser(@Valid @RequestBody UserRequestDTO userRequestDTO) {
-        log.info("Request add user = {} {}: ", userRequestDTO.getFirstName(), userRequestDTO.getLastName());
+    public ResponseData<Long> createUser(@Valid @RequestBody UserRequestDTO user) {
+        log.info("Request add user = {} {}: ", user.getFirstName(), user.getLastName());
         try {
-            userService.addUser(userRequestDTO);
-            return new ResponseData<>(HttpStatus.CREATED.value(), Translator.toLocale("user.add.success"));
+            long userId = userService.addUser(user);
+            return new ResponseData<>(HttpStatus.CREATED.value(), Translator.toLocale("user.add.success"), userId);
         } catch (Exception e) {
-            return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), Translator.toLocale("user.error"));
+            log.error("Error = {} ", e.getMessage(), e.getCause());
+            return new ResponseError(HttpStatus.BAD_REQUEST.value(), Translator.toLocale("user.error"));
         }
     }
 
