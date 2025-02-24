@@ -5,11 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 
-@Setter
 @Getter
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class AddressDTO {
     @NotBlank(message = "apartmentNumber must not be blank")
     private String apartmentNumber;
@@ -26,9 +22,6 @@ public class AddressDTO {
     private String city;
     @NotBlank(message = "country must not be blank")
     private String country;
-
-    @NotEmpty(message = "user must not be empty")
-    private User user;
 
     @NotBlank(message = "addressType must not be blank")
     private Integer addressType;

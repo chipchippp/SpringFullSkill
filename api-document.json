@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "Sample Code",
+    "title": "DUMMY-API-TITLE",
     "description": "Sample Code",
     "license": {
       "name": "Api License",
@@ -11,7 +11,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:8080",
+      "url": "http://localhost:8888",
       "description": "server test"
     }
   ],
@@ -23,58 +23,6 @@
   ],
   "paths": {
     "/api/v1/user/{userId}": {
-      "get": {
-        "tags": [
-          "User Controller"
-        ],
-        "summary": "Get user by id",
-        "description": "Get user by id",
-        "operationId": "getUser",
-        "parameters": [
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "minimum": 1,
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseDataUserRequestDTO"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      },
       "put": {
         "tags": [
           "User Controller"
@@ -274,72 +222,7 @@
             "content": {
               "*/*": {
                 "schema": {
-                  "$ref": "#/components/schemas/ResponseDataInteger"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/user/list": {
-      "get": {
-        "tags": [
-          "User Controller"
-        ],
-        "summary": "Get all users",
-        "description": "Get all users",
-        "operationId": "getUsers",
-        "parameters": [
-          {
-            "name": "pageNo",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "format": "int32",
-              "default": 0
-            }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "minimum": 10,
-              "type": "integer",
-              "format": "int32",
-              "default": 20
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResponseDataListUserRequestDTO"
+                  "$ref": "#/components/schemas/ResponseDataLong"
                 }
               }
             }
@@ -395,6 +278,18 @@
       "Address": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
           "apartmentNumber": {
             "type": "string"
           },
@@ -416,15 +311,132 @@
           "country": {
             "type": "string"
           },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
           "addressType": {
             "type": "integer",
             "format": "int32"
           }
         }
       },
+      "AddressDTO": {
+        "required": [
+          "addressType",
+          "apartmentNumber",
+          "building",
+          "city",
+          "country",
+          "floor",
+          "street",
+          "streetNumber",
+          "user"
+        ],
+        "type": "object",
+        "properties": {
+          "apartmentNumber": {
+            "type": "string"
+          },
+          "floor": {
+            "type": "string"
+          },
+          "building": {
+            "type": "string"
+          },
+          "streetNumber": {
+            "type": "string"
+          },
+          "street": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "addressType": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "gender": {
+            "type": "string",
+            "enum": [
+              "MALE",
+              "FEMALE",
+              "OTHER"
+            ]
+          },
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "USER",
+              "OWNER"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "inactive",
+              "none"
+            ]
+          },
+          "addresses": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Address"
+            }
+          }
+        }
+      },
       "UserRequestDTO": {
         "required": [
-          "address",
+          "addresses",
           "dateOfBirth",
           "firstName",
           "lastName",
@@ -456,11 +468,11 @@
           "password": {
             "type": "string"
           },
-          "address": {
+          "addresses": {
             "uniqueItems": true,
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Address"
+              "$ref": "#/components/schemas/AddressDTO"
             }
           },
           "status": {
@@ -499,7 +511,7 @@
           }
         }
       },
-      "ResponseDataInteger": {
+      "ResponseDataLong": {
         "type": "object",
         "properties": {
           "status": {
@@ -511,40 +523,7 @@
           },
           "data": {
             "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "ResponseDataUserRequestDTO": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "$ref": "#/components/schemas/UserRequestDTO"
-          }
-        }
-      },
-      "ResponseDataListUserRequestDTO": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserRequestDTO"
-            }
+            "format": "int64"
           }
         }
       }

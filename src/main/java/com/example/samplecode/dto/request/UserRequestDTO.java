@@ -26,7 +26,6 @@ public class UserRequestDTO implements Serializable {
     @Email(message = "Email invalid format")
     private String email;
 
-    //    @Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be 10 digits")
     @PhoneNumber
     private String phone;
 
@@ -40,13 +39,6 @@ public class UserRequestDTO implements Serializable {
     @NotNull(message = "Password must not be null")
     private String password;
 
-    @NotEmpty(message = "Permissions must not be empty")
-    private Set<AddressDTO> addresses;
-
-    //    @Pattern(regexp = "^ACTIVE|INACTIVE|DELETED$", message = "Invalid status")
-    @EnumPattern(name = "status", regexp = "^ACTIVE|INACTIVE|DELETED$", message = "Invalid status")
-    private UserStatus status;
-
     @GenderSubset(anyOf = {MALE, FEMALE, OTHER})
     private Gender gender;
 
@@ -54,10 +46,9 @@ public class UserRequestDTO implements Serializable {
     @EnumValue(name = "type", enumClass = UserType.class, message = "Invalid type")
     private String type;
 
-    public UserRequestDTO(String firstName, String lastName, String email, String phone) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.phone = phone;
-    }
+    @EnumPattern(name = "status", regexp = "^ACTIVE|INACTIVE|DELETED$", message = "Invalid status")
+    private UserStatus status;
+
+    @NotEmpty(message = "Address must not be empty")
+    private Set<AddressDTO> addresses;
 }

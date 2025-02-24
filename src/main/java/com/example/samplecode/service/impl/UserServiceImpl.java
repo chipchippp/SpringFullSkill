@@ -1,7 +1,9 @@
 package com.example.samplecode.service.impl;
 
+import com.example.samplecode.configuration.Translator;
 import com.example.samplecode.dto.request.AddressDTO;
 import com.example.samplecode.dto.request.UserRequestDTO;
+import com.example.samplecode.dto.response.PageResponse;
 import com.example.samplecode.dto.response.UserDetailResponse;
 import com.example.samplecode.exception.ResourceNotFoundException;
 import com.example.samplecode.model.Address;
@@ -10,13 +12,21 @@ import com.example.samplecode.repository.UserRepository;
 import com.example.samplecode.service.UserService;
 import com.example.samplecode.util.UserStatus;
 import com.example.samplecode.util.UserType;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @Slf4j
@@ -24,6 +34,101 @@ import java.util.Set;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+
+    @Override
+    public PageResponse<?> getAllUsers(int pageNo, int pageSize, String sortBy) {
+        int page = 0;
+        if (pageNo > 0) {
+            page = pageNo - 1;
+        }
+
+        List<Sort.Order> sorts = new ArrayList<>();
+
+//        nếu có value
+        if (StringUtils.hasLength(sortBy)){
+            Pattern pattern = Pattern.compile("(\\w+?)(:)(.*)");
+            Matcher matcher = pattern.matcher(sortBy);
+            if (matcher.find()){
+                if (matcher.group(3).equalsIgnoreCase("asc")) {
+                    sorts.add(new Sort.Order(Sort.Direction.ASC, matcher.group(1)));
+                } else {
+                    sorts.add(new Sort.Order(Sort.Direction.DESC, matcher.group(1)));
+                }
+            }
+        }
+
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(sorts));
+        Page<User> users = userRepository.findAll(pageable);
+        List<UserDetailResponse> responses = users.stream().map(user -> UserDetailResponse.builder()
+                        .id(user.getId())
+                        .firstName(user.getFirstName())
+                        .lastName(user.getLastName())
+                        .phone(user.getPhone())
+                        .email(user.getEmail())
+                        .build())
+                .toList();
+
+
+        return PageResponse.builder()
+                .pageNo(pageNo)
+                .pageSize(pageSize)
+                .totalPage(users.getTotalPages())
+                .items(responses)
+                .build();
+    }
+
+    @Override
+    public PageResponse<?> getAllUserWithSortByMultipleColum(int pageNo, int pageSize, String... sorts) {
+        int page = 0;
+        if (pageNo > 0) {
+            page = pageNo - 1;
+        }
+
+        List<Sort.Order> orders = new ArrayList<>();
+
+//        nếu có value
+        for (String sortBy : sorts) {
+            Pattern pattern = Pattern.compile("(\\w+?)(:)(.*)");
+            Matcher matcher = pattern.matcher(sortBy);
+            if (matcher.find()){
+                if (matcher.group(3).equalsIgnoreCase("asc")) {
+                    orders.add(new Sort.Order(Sort.Direction.ASC, matcher.group(1)));
+                } else {
+                    orders.add(new Sort.Order(Sort.Direction.DESC, matcher.group(1)));
+                }
+            }
+        }
+
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(orders));
+        Page<User> users = userRepository.findAll(pageable);
+        List<UserDetailResponse> responses = users.stream().map(user -> UserDetailResponse.builder()
+                        .id(user.getId())
+                        .firstName(user.getFirstName())
+                        .lastName(user.getLastName())
+                        .phone(user.getPhone())
+                        .email(user.getEmail())
+                        .build())
+                .toList();
+
+
+        return PageResponse.builder()
+                .pageNo(pageNo)
+                .pageSize(pageSize)
+                .totalPage(users.getTotalPages())
+                .items(responses)
+                .build();
+    }
+
+    @Override
+    public UserDetailResponse getUserId(long userId) {
+        User user = getUserById(userId);
+        return UserDetailResponse.builder()
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .phone(user.getPhone())
+                .email(user.getEmail())
+                .build();
+    }
 
     @Override
     public long addUser(UserRequestDTO request) {
@@ -77,12 +182,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUser(long userId) {
-        userRepository.deleteById(userId);
-        log.info("User {} deleted successfully", userId);
-    }
-
-    @Override
     public void changeUserStatus(long userId, UserStatus status) {
         User user = getUserById(userId);
         user.setStatus(status);
@@ -91,19 +190,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDetailResponse getUser(long userId) {
-        User user = getUserById(userId);
-        return UserDetailResponse.builder()
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .phone(user.getPhone())
-                .email(user.getEmail())
-                .build();
-    }
-
-    @Override
-    public List<UserDetailResponse> getAllUsers(int pageNo, int pageSize) {
-        return List.of();
+    public void deleteUser(long userId) {
+        userRepository.deleteById(userId);
+        log.info("User {} deleted successfully", userId);
     }
 
     private Set<Address> convertAddress(Set<AddressDTO> addresses) {
@@ -124,6 +213,6 @@ public class UserServiceImpl implements UserService {
 
     private User getUserById(long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(Translator.toLocale("user.not.found")));
     }
 }
