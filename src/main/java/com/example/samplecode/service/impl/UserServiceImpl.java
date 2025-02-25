@@ -8,6 +8,7 @@ import com.example.samplecode.dto.response.UserDetailResponse;
 import com.example.samplecode.exception.ResourceNotFoundException;
 import com.example.samplecode.model.Address;
 import com.example.samplecode.model.User;
+import com.example.samplecode.repository.SearchRepository;
 import com.example.samplecode.repository.UserRepository;
 import com.example.samplecode.service.UserService;
 import com.example.samplecode.util.UserStatus;
@@ -28,12 +29,15 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.example.samplecode.util.AppConst.SORT_BY;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final SearchRepository searchRepository;
 
     @Override
     public PageResponse<?> getAllUsers(int pageNo, int pageSize, String sortBy) {
@@ -88,7 +92,7 @@ public class UserServiceImpl implements UserService {
 
 //        nếu có value
         for (String sortBy : sorts) {
-            Pattern pattern = Pattern.compile("(\\w+?)(:)(.*)");
+            Pattern pattern = Pattern.compile(SORT_BY);
             Matcher matcher = pattern.matcher(sortBy);
             if (matcher.find()){
                 if (matcher.group(3).equalsIgnoreCase("asc")) {
@@ -118,6 +122,16 @@ public class UserServiceImpl implements UserService {
                 .items(responses)
                 .build();
     }
+
+    @Override
+    public PageResponse<?> getAllUsersAndSearchWithPagingAndSorting(int pageNo, int pageSize, String search, String sortBy) {
+        return searchRepository.getAllUsersAndSearchWithPagingAndSorting(pageNo, pageSize, search, sortBy);
+    }
+
+//    @Override
+//    public PageResponse<?> advanceSearchWithCriteria(int pageNo, int pageSize, String sortBy, String address, String... search) {
+//        return searchRepository.searchUserByCriteria(pageNo, pageSize, sortBy, address, search);
+//    }
 
     @Override
     public UserDetailResponse getUserId(long userId) {
