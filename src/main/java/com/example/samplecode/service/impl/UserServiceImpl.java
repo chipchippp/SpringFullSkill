@@ -128,15 +128,16 @@ public class UserServiceImpl implements UserService {
         return searchRepository.getAllUsersAndSearchWithPagingAndSorting(pageNo, pageSize, search, sortBy);
     }
 
-//    @Override
-//    public PageResponse<?> advanceSearchWithCriteria(int pageNo, int pageSize, String sortBy, String address, String... search) {
-//        return searchRepository.searchUserByCriteria(pageNo, pageSize, sortBy, address, search);
-//    }
+    @Override
+    public PageResponse<?> advanceSearchWithCriteria(int pageNo, int pageSize, String sortBy, String address, String... search) {
+        return searchRepository.searchUserByCriteria(pageNo, pageSize, sortBy, address, search);
+    }
 
     @Override
     public UserDetailResponse getUserId(long userId) {
         User user = getUserById(userId);
         return UserDetailResponse.builder()
+                .id(user.getId())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .phone(user.getPhone())

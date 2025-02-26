@@ -3,6 +3,7 @@ package com.example.samplecode.model;
 import com.example.samplecode.dto.validator.Gender;
 import com.example.samplecode.util.UserStatus;
 import com.example.samplecode.util.UserType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -18,7 +19,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "users")
+@Table(name = "tbl_user")
 public class User extends AbstractEntity {
 
     @Column(name = "first_name")
@@ -58,6 +59,7 @@ public class User extends AbstractEntity {
     @Column(name = "status")
     private UserStatus status;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<Address> addresses = new HashSet<>();
 
