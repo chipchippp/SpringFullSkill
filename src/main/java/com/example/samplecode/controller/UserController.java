@@ -14,10 +14,13 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RequiredArgsConstructor
 @RestController
@@ -26,6 +29,14 @@ import java.util.List;
 @Tag(name = "User Controller", description = "User API")
 public class UserController {
     private final UserService userService;
+
+    @Operation(summary = "Advance search query by specifications", description = "Return list of users")
+    @GetMapping(path = "/advance-search-with-specification", produces = APPLICATION_JSON_VALUE)
+    public ResponseData<?> advanceSearchWithSpecifications(Pageable pageable,
+                                                           @RequestParam(required = false) String[] user,
+                                                           @RequestParam(required = false) String[] address) {
+        return new ResponseData<>(HttpStatus.OK.value(), "users", userService.advanceSearchWithSpecifications(pageable, user, address));
+    }
 
     @Operation(summary = "Get all users", description = "Get all users")
     @GetMapping("/list")

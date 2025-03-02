@@ -5,11 +5,15 @@ import com.example.samplecode.dto.request.AddressDTO;
 import com.example.samplecode.dto.request.UserRequestDTO;
 import com.example.samplecode.dto.response.PageResponse;
 import com.example.samplecode.dto.response.UserDetailResponse;
+import com.example.samplecode.dto.validator.Gender;
 import com.example.samplecode.exception.ResourceNotFoundException;
 import com.example.samplecode.model.Address;
 import com.example.samplecode.model.User;
 import com.example.samplecode.repository.SearchRepository;
 import com.example.samplecode.repository.UserRepository;
+import com.example.samplecode.repository.specification.UserSpec;
+import com.example.samplecode.repository.specification.UserSpecification;
+import com.example.samplecode.repository.specification.UserSpecificationsBuilder;
 import com.example.samplecode.service.UserService;
 import com.example.samplecode.util.UserStatus;
 import com.example.samplecode.util.UserType;
@@ -19,16 +23,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.example.samplecode.util.AppConst.SEARCH_SPEC_OPERATOR;
 import static com.example.samplecode.util.AppConst.SORT_BY;
 
 @Service
@@ -63,22 +66,7 @@ public class UserServiceImpl implements UserService {
 
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(sorts));
         Page<User> users = userRepository.findAll(pageable);
-        List<UserDetailResponse> responses = users.stream().map(user -> UserDetailResponse.builder()
-                        .id(user.getId())
-                        .firstName(user.getFirstName())
-                        .lastName(user.getLastName())
-                        .phone(user.getPhone())
-                        .email(user.getEmail())
-                        .build())
-                .toList();
-
-
-        return PageResponse.builder()
-                .pageNo(pageNo)
-                .pageSize(pageSize)
-                .totalPage(users.getTotalPages())
-                .items(responses)
-                .build();
+        return convertToPageResponse(users, pageable);
     }
 
     @Override
@@ -105,21 +93,22 @@ public class UserServiceImpl implements UserService {
 
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(orders));
         Page<User> users = userRepository.findAll(pageable);
-        List<UserDetailResponse> responses = users.stream().map(user -> UserDetailResponse.builder()
-                        .id(user.getId())
-                        .firstName(user.getFirstName())
-                        .lastName(user.getLastName())
-                        .phone(user.getPhone())
-                        .email(user.getEmail())
-                        .build())
-                .toList();
+        return convertToPageResponse(users, pageable);
+    }
 
-
+    private PageResponse<?> convertToPageResponse(Page<User> users, Pageable pageable) {
+        List<UserDetailResponse> response = users.stream().map(user -> UserDetailResponse.builder()
+                .id(user.getId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .build()).toList();
         return PageResponse.builder()
-                .pageNo(pageNo)
-                .pageSize(pageSize)
-                .totalPage(users.getTotalPages())
-                .items(responses)
+                .page(pageable.getPageNumber())
+                .size(pageable.getPageSize())
+                .total(users.getTotalPages())
+                .items(response)
                 .build();
     }
 
@@ -131,6 +120,31 @@ public class UserServiceImpl implements UserService {
     @Override
     public PageResponse<?> advanceSearchWithCriteria(int pageNo, int pageSize, String sortBy, String address, String... search) {
         return searchRepository.searchUserByCriteria(pageNo, pageSize, sortBy, address, search);
+    }
+
+    @Override
+    public PageResponse<?> advanceSearchWithSpecifications(Pageable pageable, String[] user, String[] address) {
+        log.info("getUsersBySpecifications");
+
+        if (user != null && address != null) {
+            return searchRepository.searchUserByCriteriaWithJoin(pageable, user, address);
+        } else if (user != null) {
+            UserSpecificationsBuilder builder = new UserSpecificationsBuilder();
+
+            Pattern pattern = Pattern.compile(SEARCH_SPEC_OPERATOR);
+            for (String s : user) {
+                Matcher matcher = pattern.matcher(s);
+                if (matcher.find()) {
+                    builder.with(matcher.group(1), matcher.group(2), matcher.group(3), matcher.group(4), matcher.group(5));
+                    System.out.println("Params: " + builder.params);                }
+            }
+
+            Page<User> users = userRepository.findAll(Objects.requireNonNull(builder.build()), pageable);
+
+            return convertToPageResponse(users, pageable);
+        }
+
+        return convertToPageResponse(userRepository.findAll(pageable), pageable);
     }
 
     @Override
@@ -158,7 +172,7 @@ public class UserServiceImpl implements UserService {
                 .password(request.getPassword())
                 .type(UserType.valueOf(request.getType().toUpperCase()))
                 .status(request.getStatus())
-                .addresses(convertAddress(request.getAddresses()))
+                .addresses(convertToAddress(request.getAddresses()))
                 .build();
         request.getAddresses().forEach(a ->
                 user.saveAddress(Address.builder()
@@ -191,7 +205,7 @@ public class UserServiceImpl implements UserService {
         user.setPassword(request.getPassword());
         user.setType(UserType.valueOf(request.getType().toUpperCase()));
         user.setStatus(request.getStatus());
-        user.setAddresses(convertAddress(request.getAddresses()));
+        user.setAddresses(convertToAddress(request.getAddresses()));
         userRepository.save(user);
         log.info("User {} updated successfully", user.getId());
     }
@@ -210,24 +224,24 @@ public class UserServiceImpl implements UserService {
         log.info("User {} deleted successfully", userId);
     }
 
-    private Set<Address> convertAddress(Set<AddressDTO> addresses) {
+    private Set<Address> convertToAddress(Set<AddressDTO> addresses) {
         Set<Address> result = new HashSet<>();
         addresses.forEach(a ->
                 result.add(Address.builder()
                         .apartmentNumber(a.getApartmentNumber())
                         .floor(a.getFloor())
-                        .street(a.getStreet())
+                        .building(a.getBuilding())
                         .streetNumber(a.getStreetNumber())
+                        .street(a.getStreet())
                         .city(a.getCity())
                         .country(a.getCountry())
-                        .building(a.getBuilding())
                         .addressType(a.getAddressType())
-                        .build()));
+                        .build())
+        );
         return result;
     }
 
     private User getUserById(long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException(Translator.toLocale("user.not.found")));
+        return userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 }
