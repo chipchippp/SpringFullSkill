@@ -24,7 +24,7 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 
     // -- OR --
     //  @Query(value = "select * from User u where u.firstName=:name or u.lastName:name")
-    List<User> findByFirstNameOrLastName(String name);
+//    List<User> findByFirstNameOrLastName(String name);
 
     // -- Is, Equals --
     //@Query(value = "select * from User u where u.firstName=:name")
@@ -50,13 +50,13 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     List<User> findByCreatedAtBefore(Date date);
     List<User> findByCreatedAtAfter(Date date);
 
-    // IsNull, Null
-    // @Query(value = "select * from User u where u.age is null")
-    List<User> findByAgeIsNull();
-
-    // NotNull, IsNotNull
-    // @Query(value = "select * from User u where u.age is not null")
-    List<User> findByAgeNotNull();
+//    // IsNull, Null
+//    // @Query(value = "select * from User u where u.age is null")
+//    List<User> findByAgeIsNull();
+//
+//    // NotNull, IsNotNull
+//    // @Query(value = "select * from User u where u.age is not null")
+//    List<User> findByAgeNotNull();
 
     // Like
     //@Query(value = "select * from User u where u.lastName like %:lastName%")
@@ -83,16 +83,16 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 
     // In
     // @Query(value = "select * from User u where u.age in (18,25,30)")
-    List<User> findByAgeIn(Collection<Integer> ages);
-
-    // Not in
-    //@Query(value = "select * from User u where u.age not in (18,25,30)")
-    List<User> findByAgeNotIn(Collection<Integer> ages);
-
-    // True/False
-    //@Query(value = "select * from User u where u.activated=true")
-    List<User> findByActivatedTrue();
-    List<User> findByActivatedFalse();
+//    List<User> findByAgeIn(Collection<Integer> ages);
+//
+//    // Not in
+//    //@Query(value = "select * from User u where u.age not in (18,25,30)")
+//    List<User> findByAgeNotIn(Collection<Integer> ages);
+//
+//    // True/False
+//    //@Query(value = "select * from User u where u.activated=true")
+//    List<User> findByActivatedTrue();
+//    List<User> findByActivatedFalse();
 
     // IgnoreCase
     // @Query(value = "select * from User u where LOWER(u.lastName) <> LOWER(:name)")
