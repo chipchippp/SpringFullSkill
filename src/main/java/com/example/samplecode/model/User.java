@@ -34,6 +34,10 @@ public class User extends AbstractEntity {
     @Column(name = "email")
     private String email;
 
+//    private Integer age;
+//
+//    private Boolean activated;
+
     @Column(name = "date_of_birth")
     @Temporal(TemporalType.DATE)
     private Date dateOfBirth;
