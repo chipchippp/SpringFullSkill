@@ -14,9 +14,11 @@ import com.example.samplecode.repository.UserRepository;
 import com.example.samplecode.repository.specification.UserSpec;
 import com.example.samplecode.repository.specification.UserSpecification;
 import com.example.samplecode.repository.specification.UserSpecificationsBuilder;
+import com.example.samplecode.service.MailService;
 import com.example.samplecode.service.UserService;
 import com.example.samplecode.util.UserStatus;
 import com.example.samplecode.util.UserType;
+import jakarta.mail.MessagingException;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -27,6 +29,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,6 +44,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final SearchRepository searchRepository;
+    private final MailService mailService;
 
     @Override
     public PageResponse<?> getAllUsers(int pageNo, int pageSize, String sortBy) {
@@ -160,7 +164,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public long addUser(UserRequestDTO request) {
+    public long addUser(UserRequestDTO request) throws MessagingException, UnsupportedEncodingException {
         User user = User.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
@@ -186,6 +190,10 @@ public class UserServiceImpl implements UserService {
                         .addressType(a.getAddressType())
                         .build()));
         userRepository.save(user);
+
+        if (user.getId() != null){
+            mailService.sendConfirmationEmailLink(user.getEmail(), user.getId(), "secretCode");
+        }
         log.info("User {} added successfully", user.getId());
         return user.getId();
     }
@@ -216,6 +224,14 @@ public class UserServiceImpl implements UserService {
         user.setStatus(status);
         userRepository.save(user);
         log.info("User {} status changed to {}", user.getId(), status);
+    }
+
+    @Override
+    public void confirmUser(long userId, String secretCode) {
+        User user = getUserById(userId);
+        user.setStatus(UserStatus.ACTIVE);
+        userRepository.save(user);
+        log.info("User {} confirmed successfully", user.getId());
     }
 
     @Override

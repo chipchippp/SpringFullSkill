@@ -10,6 +10,7 @@ import com.example.samplecode.service.UserService;
 import com.example.samplecode.util.UserStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -129,6 +131,21 @@ public class UserController {
         } catch (ResourceNotFoundException e){
             log.error("Error = {} ", e.getMessage(), e.getCause());
             return new ResponseError(HttpStatus.BAD_REQUEST.value(), "Change user failed");
+        }
+    }
+
+    @GetMapping("/confirm/{userId}")
+    public ResponseData<?> confirmUser(@Min(1) @PathVariable long userId, @RequestParam String secretCode, HttpServletResponse response) throws IOException {
+        log.info("Confirm User id = {}, secretCode = {} ", userId, secretCode);
+        try {
+            userService.confirmUser(userId, secretCode);
+            return new ResponseData<>(HttpStatus.ACCEPTED.value(), "User confirmed");
+        } catch (ResourceNotFoundException e){
+            log.error("Error = {} ", e.getMessage(), e.getCause());
+            return new ResponseError(HttpStatus.BAD_REQUEST.value(), "Confirmed user failed");
+        } finally {
+            // direct to login page
+            response.sendRedirect("http://tayjava.vn");
         }
     }
 
