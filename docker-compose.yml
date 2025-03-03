@@ -1,10 +1,37 @@
 version: '3.9'
 
 services:
+
+  postgres:
+    image: postgres
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      PGDATA: /data/postgres
+    volumes:
+      - postgres:/data/postgres
+      - ./initdb.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - '5432:5432'
+
+  redis:
+    image: redis:6.2-alpine
+    container_name: redis
+    hostname: redis
+    ports:
+      - '6380:6379'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_DISABLE_COMMANDS=FLUSHDB;FLUSHALL
+    networks:
+      - backend
+
   api-service:
     container_name: api-service
     build:
-      context: .
+      context: ./
       dockerfile: Dockerfile
     env_file:
       - .env
@@ -17,6 +44,10 @@ networks:
   backend:
     driver: bridge
 
+volumes:
+  postgres:
+
+# mvn clean install -DskipTests
 # docker-compose up -d
 # docker-compose down -v
 # docker-compose ps -a
