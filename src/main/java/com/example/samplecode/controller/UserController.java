@@ -4,15 +4,25 @@ import com.example.samplecode.configuration.Translator;
 import com.example.samplecode.dto.request.UserRequestDTO;
 import com.example.samplecode.dto.response.ResponseData;
 import com.example.samplecode.dto.response.ResponseError;
+import com.example.samplecode.dto.response.UserDetailResponse;
+import com.example.samplecode.exception.ResourceNotFoundException;
 import com.example.samplecode.service.UserService;
+import com.example.samplecode.util.UserStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
+import java.util.List;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RequiredArgsConstructor
 @RestController
@@ -22,67 +32,133 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserService userService;
 
-//    @Operation(summary = "Get all users", description = "Get all users")
-//    @GetMapping("/list")
-//    @ResponseStatus(HttpStatus.OK)
-//    public ResponseData<List<UserRequestDTO>> getUsers(
-//            @RequestParam(defaultValue = "0", required = false) int pageNo,
-//            @Min(10) @RequestParam(defaultValue = "20", required = false) int pageSize) {
-//        log.info("Get all users");
-//
-//        try {
-//            userService.getAllUsers(pageNo, pageSize);
-//        } catch (Exception e) {
-//            return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), "User not found");
-//        }
-//
-//        return new ResponseData<>(HttpStatus.OK.value(), "User found", List.of(
-//                new UserRequestDTO("John", "Doe", "john@gmail.com", "1234567890"),
-//                new UserRequestDTO("Jane", "Doe", "jane@gmail.com", "0987654321")));
-//    }
-//
-//    @Operation(summary = "Get user by id", description = "Get user by id")
-//    @GetMapping("/{userId}")
-//    @ResponseStatus(HttpStatus.OK)
-//    public ResponseData<UserRequestDTO> getUser(@PathVariable @Min(1) Long userId) {
-//        log.info("User id: " + userId);
-//        return new ResponseData<>(HttpStatus.OK.value(), "User found", new UserRequestDTO("John", "Doe", "john@gmail.com", "1234567890"));
-//    }
+    @Operation(summary = "Advance search query by specifications", description = "Return list of users")
+    @GetMapping(path = "/advance-search-with-specification", produces = APPLICATION_JSON_VALUE)
+    public ResponseData<?> advanceSearchWithSpecifications(Pageable pageable,
+                                                           @RequestParam(required = false) String[] user,
+                                                           @RequestParam(required = false) String[] address) {
+        return new ResponseData<>(HttpStatus.OK.value(), "users", userService.advanceSearchWithSpecifications(pageable, user, address));
+    }
 
+    @Operation(summary = "Get all users", description = "Get all users")
+    @GetMapping("/list")
+    public ResponseData<?> getAllUsers(
+            @RequestParam(defaultValue = "0", required = false) int pageNo,
+            @RequestParam(defaultValue = "10", required = false) int pageSize,
+            @RequestParam(required = false) String sortBy
+    ) {
+        log.info("Get all users");
+        return new ResponseData<>(HttpStatus.OK.value(), "User found", userService.getAllUsers(pageNo, pageSize, sortBy));
+    }
+
+    @Operation(summary = "Get all users WithSortByMultipleColumns", description = "Get all users")
+    @GetMapping("/listWithSortByMultipleColumns")
+    public ResponseData<?> getAllUserWithSortByMultipleColum(
+            @RequestParam(defaultValue = "0", required = false) int pageNo,
+            @RequestParam(defaultValue = "10", required = false) int pageSize,
+            @RequestParam(required = false) String... sorts
+    ) {
+        log.info("Get all users WithSortByMultipleColumns");
+        return new ResponseData<>(HttpStatus.OK.value(), "User found", userService.getAllUserWithSortByMultipleColum(pageNo, pageSize, sorts));
+    }
+
+    @Operation(summary = "Get list of users and search with paging and sorting by customize query", description = "Send a request via this API to get user list by pageNo, pageSize and sort by multiple column")
+    @GetMapping("/list-user-and-search-with-paging-and-sorting")
+    public ResponseData<?> getAllUsersAndSearchWithPagingAndSorting(@RequestParam(defaultValue = "0", required = false) int pageNo,
+                                                                    @RequestParam(defaultValue = "20", required = false) int pageSize,
+                                                                    @RequestParam(required = false) String search,
+                                                                    @RequestParam(required = false) String sortBy) {
+        log.info("Request get list of users and search with paging and sorting");
+        return new ResponseData<>(HttpStatus.OK.value(), "users", userService.getAllUsersAndSearchWithPagingAndSorting(pageNo, pageSize, search, sortBy));
+    }
+
+    @Operation(summary = "Advance search query by criteria", description = "Send a request via this API to get user list by pageNo, pageSize and sort by multiple column")
+    @GetMapping("/advance-search-with-criteria")
+    public ResponseData<?> advanceSearchWithCriteria(@RequestParam(defaultValue = "0", required = false) int pageNo,
+                                                     @RequestParam(defaultValue = "20", required = false) int pageSize,
+                                                     @RequestParam(required = false) String sortBy,
+                                                     @RequestParam(required = false) String address,
+                                                     @RequestParam(required = false) String... search) {
+        log.info("Request advance search query by criteria");
+        return new ResponseData<>(HttpStatus.OK.value(), "users", userService.advanceSearchWithCriteria(pageNo, pageSize, sortBy, address, search));
+    }
+
+    @Operation(summary = "Get user by id", description = "Get user by id")
+    @GetMapping("/{userId}")
+    public ResponseData<UserDetailResponse> getUserId(@PathVariable @Min(1) long userId) {
+        log.info("User id: " + userId);
+        try {
+            UserDetailResponse user = userService.getUserId(userId);
+            return new ResponseData<>(HttpStatus.OK.value(), "User found", user);
+        }catch (ResourceNotFoundException e){
+            log.error("Error = {} ", e.getMessage(), e.getCause());
+            return new ResponseError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+        }
+    }
     @Operation(summary = "Add user", description = "Add user")
     @PostMapping("/add")
-    public ResponseData<Long> createUser(@Valid @RequestBody UserRequestDTO user) {
-        log.info("Request add user = {} {}: ", user.getFirstName(), user.getLastName());
+    public ResponseData<Long> createUser(@Valid @RequestBody UserRequestDTO request) {
+        log.info("Request add user = {} {}: ", request.getFirstName(), request.getLastName());
         try {
-            long userId = userService.addUser(user);
+            long userId = userService.addUser(request);
             return new ResponseData<>(HttpStatus.CREATED.value(), Translator.toLocale("user.add.success"), userId);
         } catch (Exception e) {
             log.error("Error = {} ", e.getMessage(), e.getCause());
-            return new ResponseError(HttpStatus.BAD_REQUEST.value(), Translator.toLocale("user.error"));
+            return new ResponseError(HttpStatus.BAD_REQUEST.value(), "Add user fail");
         }
     }
 
     @Operation(summary = "Update user", description = "Update user")
     @PutMapping("/{userId}")
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    public ResponseData<?> updateUser(@PathVariable @Min(1) Long userId, @Valid @RequestBody UserRequestDTO userRequestDTO) {
+    public ResponseData<?> updateUser(@PathVariable @Min(1) long userId, @Valid @RequestBody UserRequestDTO request) {
         log.info("User id = {} ", userId);
-        return new ResponseData<>(HttpStatus.ACCEPTED.value(), Translator.toLocale("user.update.success"));
+        try {
+            userService.updateUser(userId, request);
+            return new ResponseData<>(HttpStatus.ACCEPTED.value(), Translator.toLocale("user.update.success"));
+        }catch (ResourceNotFoundException e){
+            log.error("Error = {} ", e.getMessage(), e.getCause());
+            return new ResponseError(HttpStatus.BAD_REQUEST.value(), "Update user failed");
+        }
     }
 
     @Operation(summary = "Change status", description = "Change status")
     @PatchMapping("/{userId}")
-    @ResponseStatus(HttpStatus.ACCEPTED)
-    public ResponseData<?> changeStatus(@Min(1) @PathVariable Long userId, @RequestParam(value = "status", required = false) boolean status) {
+    public ResponseData<?> changeStatus(@Min(1) @PathVariable long userId, @RequestParam UserStatus status) {
         log.info("User id = {} ", userId);
-        return new ResponseData<>(HttpStatus.ACCEPTED.value(), Translator.toLocale("user.update.success"));
+        try {
+            userService.changeUserStatus(userId, status);
+            return new ResponseData<>(HttpStatus.ACCEPTED.value(), Translator.toLocale("user.change.success"));
+        } catch (ResourceNotFoundException e){
+            log.error("Error = {} ", e.getMessage(), e.getCause());
+            return new ResponseError(HttpStatus.BAD_REQUEST.value(), "Change user failed");
+        }
+    }
+
+    @GetMapping("/confirm/{userId}")
+    public ResponseData<?> confirmUser(@Min(1) @PathVariable long userId, @RequestParam String secretCode, HttpServletResponse response) throws IOException {
+        log.info("Confirm User id = {}, secretCode = {} ", userId, secretCode);
+        try {
+            userService.confirmUser(userId, secretCode);
+            return new ResponseData<>(HttpStatus.ACCEPTED.value(), "User confirmed");
+        } catch (ResourceNotFoundException e){
+            log.error("Error = {} ", e.getMessage(), e.getCause());
+            return new ResponseError(HttpStatus.BAD_REQUEST.value(), "Confirmed user failed");
+        } finally {
+            // direct to login page
+            response.sendRedirect("http://tayjava.vn");
+        }
     }
 
     @Operation(summary = "Delete user", description = "Delete user")
     @DeleteMapping("/{userId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ResponseData<?> deleteUser(@PathVariable("userId") @Min(value = 1, message = "userId must be greater than 0") Long id) {
+    public ResponseData<?> deleteUser(@PathVariable("userId") @Min(value = 1, message = "userId must be greater than 0") long id) {
         log.info("User id = {} ", id);
-        return new ResponseData<>(HttpStatus.NO_CONTENT.value(), Translator.toLocale("user.delete.success"));
+        try {
+            userService.deleteUser(id);
+            return new ResponseData<>(HttpStatus.NO_CONTENT.value(), Translator.toLocale("user.delete.success"));
+        }catch (ResourceNotFoundException e){
+            log.error("Error = {} ", e.getMessage(), e.getCause());
+            return new ResponseError(HttpStatus.BAD_REQUEST.value(), "Delete user failed");
+        }
     }
 }
