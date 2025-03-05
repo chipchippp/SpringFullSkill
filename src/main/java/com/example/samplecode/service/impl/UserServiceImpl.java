@@ -26,6 +26,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -45,6 +46,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final SearchRepository searchRepository;
     private final MailService mailService;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Override
     public PageResponse<?> getAllUsers(int pageNo, int pageSize, String sortBy) {
@@ -192,7 +194,7 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         if (user.getId() != null){
-            mailService.sendConfirmationEmailLink(user.getEmail(), user.getId(), "secretCode");
+            kafkaTemplate.send("confirm-account-topic", String.format("email=%s,id=%s,code=%s", user.getEmail(), user.getId(), "code@123"));
         }
         log.info("User {} added successfully", user.getId());
         return user.getId();

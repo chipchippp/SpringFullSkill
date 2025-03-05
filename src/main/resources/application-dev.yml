@@ -12,11 +12,16 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-    show-sql: true
+    show-sql: false
     hibernate:
       ddl-auto: none
   main:
     banner-mode: off
+  kafka:
+    bootstrap-servers: localhost:29092
+
+endpoint:
+  confirmUser: http://localhost:${server.port}/api/v1/user/confirm
 
 springdoc:
   api-docs:

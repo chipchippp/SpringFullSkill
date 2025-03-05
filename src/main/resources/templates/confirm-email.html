@@ -1,66 +1,114 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Đăng Ký</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .form-container {
-            max-width: 400px;
-            margin: 50px auto;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-        .form-container h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .btn-primary {
-            width: 100%;
-            transition: background 0.3s;
-        }
-        .btn-primary:hover {
-            background: #0056b3;
-        }
-        .form-check-label {
-            cursor: pointer;
-        }
-    </style>
+    <title th:remove="all">Please confirm your account</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+
 </head>
 <body>
-<div class="container">
-    <div class="form-container">
-        <h2>Đăng Ký</h2>
-        <form>
-            <div class="mb-3">
-                <label for="name" class="form-label">Họ và Tên</label>
-                <input type="text" class="form-control" id="name" placeholder="Nhập họ và tên" required>
-            </div>
-            <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" placeholder="Nhập email" required>
-            </div>
-            <div class="mb-3">
-                <label for="password" class="form-label">Mật khẩu</label>
-                <input type="password" class="form-control" id="password" placeholder="Nhập mật khẩu" required>
-            </div>
-            <div class="mb-3">
-                <input type="checkbox" class="form-check-input" id="agree" required>
-                <label class="form-check-label" for="agree">Tôi đồng ý với điều khoản</label>
-            </div>
-            <button type="submit" class="btn btn-primary">Đăng Ký</button>
-        </form>
-        <p class="text-center mt-3">
-            <a th:href="${linkConfirm}">Xác nhận tài khoản</a>
-        </p>
-    </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px" align="center">
+    <tbody>
+    <tr>
+        <td role="modules-container" style="padding:0px 0px 0px 0px;color:#626262;text-align:left" bgcolor="#ffffff" width="100%" align="left">
+            <table role="module" border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout:fixed">
+                <tbody>
+                <tr>
+                    <td role="module-content" valign="top" height="100%" style="padding:64px 34px 0px 34px" bgcolor="#ffffff">
+                        <div style="color:#626262;font-family:helvetica,arial,sans-serif">
+                            <div style="color:#626262;font-family:helvetica,arial,sans-serif">
+                                <div style="font-family:helvetica,arial,sans-serif;font-size:14px;font-style:normal;font-variant:normal;color:#626262"><span style="color:#000000"><span style="font-size:22px">Please confirm your account.</span></span></div>
+                            </div>
+                            <div>&nbsp;</div>
+                        </div>
+                        <div style="color:#626262;font-family:helvetica,arial,sans-serif">
+                            <div>
+                                <div>
+                                    <div><span style="background-color:transparent">Just click the link below:</span></div>
+                                </div>
+                            </div>
+                            <div>&nbsp;</div>
+                            <div>&nbsp;</div>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <font color="#888888">
+            </font><font color="#888888">
+        </font><font color="#888888">
+        </font>
+            <table role="module" border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout:fixed">
+                <tbody>
+                <tr>
+                    <td style="padding:0px 0px 0px 0px" align="center" bgcolor="#ffffff">
+                        <font color="#888888">
+                        </font><font color="#888888">
+                    </font><font color="#888888">
+                    </font>
+                        <table border="0" cellpadding="0" cellspacing="0">
+                            <tbody>
+                            <tr>
+                                <td align="center" style="border-radius:6px;font-size:16px" bgcolor="173849">
+                                    <a th:href="${linkConfirm}" style="height:px;width:px;font-size:16px;line-height:px;font-family:Helvetica,Arial,sans-serif;color:#ffffff;padding:12px 38px 12px 38px;text-decoration:none;border-radius:6px;border:1px solid 173849;display:inline-block" rel="noopener" target="_blank">
+                                        Confirm account
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <font color="#888888">
+                        </font>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <font color="#888888">
+                <table role="module" border="0" align="center" cellpadding="0" cellspacing="0" width="100%" style="table-layout:fixed">
+                    <tbody>
+                    <tr>
+                        <td style="font-size:6px;line-height:10px;background-color:#ffffff;padding:10px 34px 34px 34px" valign="top" align="left" role="module-content"></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <table border="0" cellpadding="0" cellspacing="0" align="center" width="100%" role="module">
+                    <tbody>
+                    <tr>
+                        <td style="padding:15px 35px 24px 35px" bgcolor="#F4F4F4">
+                            <table border="0" cellpadding="0" cellspacing="0" align="center" width="100%">
+                                <tbody>
+                                <tr role="module-content">
+                                    <td align="center" valign="top" width="100%" height="100%">
+                                        <table border="0" cellpadding="0" cellspacing="0" width="100%" height="100%">
+                                            <tbody>
+                                            <tr>
+                                                <td role="column-one" height="100%" style="height:100%">
+                                                    <table role="module" border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout:fixed">
+                                                        <tbody>
+                                                        <tr>
+                                                            <td role="module-content" valign="top" height="100%" style="padding:0px 0px 0px 0px" bgcolor="#F4F4F4">
+                                                                <div style="font-size:10px;line-height:150%;margin:0px">
+                                                                    <div style="color:#626262;font-family:helvetica,arial,sans-serif;font-size:10px;line-height:15px;margin:0px;text-align:center"><span style="color:#626262;font-family:helvetica,arial,sans-serif;font-size:12px;text-align:center;background-color:#f4f4f4"><span class="il">Tây Java</span></span><span style="background-color:transparent">&nbsp;</span></div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </font>
+        </td>
+    </tr>
+    </tbody>
+</table>
 </body>
 </html>
