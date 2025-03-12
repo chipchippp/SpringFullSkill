@@ -9,9 +9,6 @@ spring:
     username: ${POSTGRES_USER:postgres}
     password: ${POSTGRES_PASSWORD:123}
   jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false
     hibernate:
       ddl-auto: none
@@ -29,10 +26,10 @@ springdoc:
   swagger-ui:
     enabled: true
 
-open:
-  api:
+openapi:
+  service:
+    api-docs: api-service
+    server: http://localhost:${server.port}
     title: ${API_TITLE:DUMMY-API-TITLE}
     version: v1.0.0
     description: Sample Code
-    serverUrl: http://localhost:${server.port}
-    serverName: server test

@@ -14,7 +14,7 @@ import com.example.samplecode.repository.UserRepository;
 import com.example.samplecode.repository.specification.UserSpec;
 import com.example.samplecode.repository.specification.UserSpecification;
 import com.example.samplecode.repository.specification.UserSpecificationsBuilder;
-import com.example.samplecode.service.MailService;
+//import com.example.samplecode.service.MailService;
 import com.example.samplecode.service.UserService;
 import com.example.samplecode.util.UserStatus;
 import com.example.samplecode.util.UserType;
@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final SearchRepository searchRepository;
-    private final MailService mailService;
+//    private final MailService mailService;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Override
@@ -193,9 +193,9 @@ public class UserServiceImpl implements UserService {
                         .build()));
         userRepository.save(user);
 
-        if (user.getId() != null){
-            kafkaTemplate.send("confirm-account-topic", String.format("email=%s,id=%s,code=%s", user.getEmail(), user.getId(), "code@123"));
-        }
+//        if (user.getId() != null){
+//            kafkaTemplate.send("confirm-account-topic", String.format("email=%s,id=%s,code=%s", user.getEmail(), user.getId(), "code@123"));
+//        }
         log.info("User {} added successfully", user.getId());
         return user.getId();
     }

@@ -1,3 +1,5 @@
+server:
+  port: 8888
 spring:
   application:
     name: sample-code
@@ -5,8 +7,11 @@ spring:
     active: dev
 # mvn clean package -P dev
 # java -jar .\target\sample-code-0.0.1-SNAPSHOT.jar
-server:
-  port: 8888
+# mvn clean install -DskipTests
+# docker-compose up -d
+# docker-compose down -v
+# docker-compose ps -a
+# docker-compose logs -tf
 
 # Health check
 management:
@@ -18,7 +23,7 @@ management:
     health:
       probes:
         enabled: true
-  health: # config for EKS
+  health:
     livenessState:
       enabled: true
     readinessState:
@@ -29,7 +34,6 @@ management:
         step: 5s
         enabled: true
 
-# Logging
 logging:
   level:
     root: INFO

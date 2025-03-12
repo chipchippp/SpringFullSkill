@@ -1,6 +1,20 @@
-version: '3.9'
-
 services:
+  #  postgres:
+  #    image: postgres
+  #    container_name: postgres
+  #    restart: unless-stopped
+  #    environment:
+  #      POSTGRES_USER: postgres
+  #      POSTGRES_PASSWORD: password
+  #      PGDATA: /data/postgres
+  #    volumes:
+  #      - postgres:/data/postgres
+  #      - ./initdb.sql:/docker-entrypoint-initdb.d/init.sql
+  #    ports:
+  #      - '5432:5432'
+  #    networks:
+  #      - backend
+
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     container_name: zookeeper
@@ -25,53 +39,36 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
-  postgres:
-    image: postgres
-    container_name: postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123
-      PGDATA: /data/postgres
-    volumes:
-      - postgres:/data/postgres
-      - ./initdb.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - '5432:5432'
+#  init-kafka-container:
+#    image: confluentinc/cp-kafka:latest
+#    depends_on:
+#      - kafka
+#    entrypoint: [ '/bin/sh', '-c' ]
+#    command: |
+#      "
+#      # rather than giving sleep 15 use this
+#      # to block init container to wait for Kafka broker to be ready
+#      kafka-topics --bootstrap-server kafka:9092 --list
+#
+#      # create init topics
+#      kafka-topics --create --partitions 3 --bootstrap-server kafka:9092 --topic input
+#      kafka-topics --create --bootstrap-server kafka:9092 --partitions 1 --topic output
 
-#  redis:
-#    image: redis:6.2-alpine
-#    container_name: redis
-#    hostname: redis
+#  api-service:
+#    container_name: api-service
+#    build:
+#      context: ./
+#      dockerfile: Dockerfile
+#    env_file:
+#      - .env
 #    ports:
-#      - '6380:6379'
-#    environment:
-#      - ALLOW_EMPTY_PASSWORD=yes
-#      - REDIS_DISABLE_COMMANDS=FLUSHDB;FLUSHALL
+#      - '80:7749'
 #    networks:
 #      - backend
+#
+#networks:
+#  backend:
+#    driver: bridge
 
-  api-service:
-    container_name: api-service
-    build:
-      context: ./
-      dockerfile: Dockerfile
-    env_file:
-      - .env
-    ports:
-      - '8080:8888'
-    networks:
-      - backend
-
-networks:
-  backend:
-    driver: bridge
-
-volumes:
-  postgres:
-
-# mvn clean install -DskipTests
-# docker-compose up -d
-# docker-compose down -v
-# docker-compose ps -a
-# docker-compose logs -tf
+#volumes:
+#  postgres:
