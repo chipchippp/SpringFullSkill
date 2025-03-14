@@ -23,9 +23,11 @@ public class AuthService {
         var user = userRepository.findUserByUsername(request.getUsername()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         String accessToken = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
+
         return TokenResponse.builder()
                 .accessToken(accessToken)
-                .refreshToken("refresh-token")
+                .refreshToken(refreshToken)
                 .userId(user.getId())
                 .build();
     }
