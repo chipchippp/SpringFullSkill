@@ -6,11 +6,14 @@ import com.example.samplecode.dto.response.UserDetailResponse;
 import com.example.samplecode.util.UserStatus;
 import jakarta.mail.MessagingException;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 public interface UserService {
+
+    UserDetailsService getUserDetailsService();
 
     UserDetailResponse getUserId(long userId);
 

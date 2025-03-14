@@ -1,81 +1,83 @@
 package com.example.samplecode.configuration;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import com.example.samplecode.service.UserService;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
-import java.io.IOException;
-
-// áp dụng cho cách 1, 2, 3 (implements WebMvcConfigurer)
-//@Configuration
-// áp dụng cho cách 4 (extends OncePerRequestFilter)
-@Component
+@Configuration
+@RequiredArgsConstructor
 @Profile("!prod")
-public class AppConfig extends OncePerRequestFilter {
+public class AppConfig {
 
-    //    cach 4
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
-        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        response.setHeader("Access-Control-Allow-Headers", "*");
-        response.setHeader("Access-Control-Allow-Credentials", "true");
+    private final UserService userService;
+    private final PreFilter filter;
+    private static final String[] WHITE_LIST = {"/api/v1/auth/**"};
 
-        // Nếu là request OPTIONS (preflight), trả về ngay mà không đi tiếp
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
-            response.setStatus(HttpServletResponse.SC_OK);
-            return;
-        }
-
-        filterChain.doFilter(request, response);
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(@NonNull CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedOrigins("http://localhost:8500", "http://localhost:8888")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE") // Allowed HTTP methods
+                        .allowedHeaders("*") // Allowed request headers
+                        .allowCredentials(false)
+                        .maxAge(3600);
+            }
+        };
     }
-//    cach 1
-//    @Override
-//    public void addCorsMappings(CorsRegistry registry) {
-//        registry.addMapping("/**")
-//                .allowCredentials(true)
-//                .allowedOrigins("http://localhost:3000")
-//                .allowedMethods("*")
-//                .allowedHeaders("*");
-//    }
 
-//    cach 2
-//    @Bean
-//    public WebMvcConfigurer corsConfigurer() {
-//        return new WebMvcConfigurer() {
-//            @Override
-//            public void addCorsMappings(CorsRegistry registry) {
-//                registry.addMapping("/**")
-//                        .allowCredentials(true)
-//                        .allowedOrigins("http://localhost:3000")
-//                        .allowedMethods("*")
-//                        .allowedHeaders("*");
-//            }
-//        };
-//    }
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-//    @Bean
-//    public FilterRegistrationBean<CorsFilter> corsFilter(){
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        CorsConfiguration config = new CorsConfiguration();
-//        config.setAllowCredentials(true);
-////        config.addAllowedOrigin("http://localhost:3000");
-//        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:3001"));
-////        config.setAllowedMethods(List.of("*"));
-////        config.setAllowedHeaders(List.of("*"));
-//        config.addAllowedHeader("*");
-//        config.addAllowedMethod("*");
-//
-//        source.registerCorsConfiguration("/**", config);
-//
-//        FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
-//        bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
-//        return bean;
-//    }
+    @Bean
+    public SecurityFilterChain configure(@NonNull HttpSecurity http) throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable) // Vô hiệu hóa CSRF
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v1/auth/**").permitAll() // Các API `/api/v1/auth/**` không cần xác thực
+                        .anyRequest().authenticated()) // Các request khác cần xác thực
+                .sessionManagement(session -> session.sessionCreationPolicy(STATELESS)) // Không sử dụng session (JWT)
+                .authenticationProvider(provider()) // Cung cấp provider để xử lý xác thực
+                .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class); // Chạy PreFilter trước bộ lọc xác thực
+        return http.build();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+       return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return web -> web.ignoring().requestMatchers("/actuator/**", "/v3/**", "webjars/**", "/swagger-ui*/swagger-initializer.js", "/swagger-ui/**");
+    }
+
+    @Bean
+    public AuthenticationProvider provider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userService.getUserDetailsService());
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
+    }
 
 }

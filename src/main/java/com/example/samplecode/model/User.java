@@ -8,10 +8,11 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.io.Serializable;
+import java.util.*;
 
 @Setter
 @Getter
@@ -20,7 +21,7 @@ import java.util.Set;
 @Builder
 @Entity
 @Table(name = "tbl_user")
-public class User extends AbstractEntity<Long> {
+public class User extends AbstractEntity<Long> implements UserDetails, Serializable {
 
     @Column(name = "first_name")
     private String firstName;
@@ -81,5 +82,30 @@ public class User extends AbstractEntity<Long> {
             addresses.add(address);
             address.setUser(this); // Bidirectional relationship (save user_id)
         }
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of();
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
     }
 }
