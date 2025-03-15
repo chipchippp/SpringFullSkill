@@ -29,15 +29,13 @@ public class AuthController {
         return new ResponseEntity<>(authService.authenticate(request), OK);
     }
 
-//    @PostMapping("/refresh")
-//    public ResponseEntity<TokenResponse> refresh(HttpServletRequest request) {
-//        return new ResponseEntity<>(authService.refreshToken(request), OK);
-//    }
-//
-//    @PostMapping("/logout")
-//    public ResponseEntity<String> logout(HttpServletRequest request) {
-//        return new ResponseEntity<>(authService.logout(request), OK);
-//    }
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenResponse> refresh(HttpServletRequest request) {
+        return new ResponseEntity<>(authService.refreshToken(request), OK);
+    }
 
-
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(HttpServletRequest request) {
+        return new ResponseEntity<>(authService.logout(request), OK);
+    }
 }

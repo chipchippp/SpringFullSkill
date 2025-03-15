@@ -11,6 +11,8 @@ public class TokenResponse implements Serializable {
     private String accessToken;
     private String refreshToken;
     private Long userId;
+    private String username;
+    private String email;
 
 //    more over
 

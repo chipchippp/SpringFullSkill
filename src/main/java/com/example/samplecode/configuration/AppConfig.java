@@ -54,7 +54,7 @@ public class AppConfig {
     public SecurityFilterChain configure(@NonNull HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable) // Vô hiệu hóa CSRF
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll() // Các API `/api/v1/auth/**` không cần xác thực
+                        .requestMatchers(WHITE_LIST).permitAll() // Các API `/api/v1/auth/**` không cần xác thực
                         .anyRequest().authenticated()) // Các request khác cần xác thực
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS)) // Không sử dụng session (JWT)
                 .authenticationProvider(provider()) // Cung cấp provider để xử lý xác thực

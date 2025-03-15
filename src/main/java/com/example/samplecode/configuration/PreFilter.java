@@ -2,6 +2,7 @@ package com.example.samplecode.configuration;
 
 import com.example.samplecode.service.JwtService;
 import com.example.samplecode.service.UserService;
+import com.example.samplecode.util.TokenType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +20,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+import static com.example.samplecode.util.TokenType.ACCESS_TOKEN;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -31,18 +34,16 @@ public class PreFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         log.info("PreFilter: " + request.getMethod() + " " + request.getRequestURI());
         final String authorization = request.getHeader("Authorization");
-//        log.info("Authorization: " + authorization);
         if (StringUtils.isBlank(authorization) || !authorization.startsWith("Bearer ")) {
             filterChain.doFilter(request, response); // Cho phép request tiếp tục đi qua filter chain
             return;
         }
         final String token = authorization.substring(7);
-//        log.info("Token: " + token);
-        final String username = jwtService.extractUsername(token);
+        final String username = jwtService.extractUsername(token, ACCESS_TOKEN);
 
         if (StringUtils.isNotEmpty(username) && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userService.getUserDetailsService().loadUserByUsername(username);
-            if (jwtService.isValid(token, userDetails)){
+            if (jwtService.isValid(token,  userDetails, ACCESS_TOKEN)){
                 SecurityContext context = SecurityContextHolder.createEmptyContext();
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
