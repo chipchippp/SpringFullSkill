@@ -3,6 +3,7 @@ package com.example.samplecode.service;
 import com.example.samplecode.dto.request.UserRequestDTO;
 import com.example.samplecode.dto.response.PageResponse;
 import com.example.samplecode.dto.response.UserDetailResponse;
+import com.example.samplecode.model.User;
 import com.example.samplecode.util.UserStatus;
 import jakarta.mail.MessagingException;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +23,8 @@ public interface UserService {
     PageResponse<?> getAllUsersAndSearchWithPagingAndSorting(int pageNo, int pageSize, String search, String sortBy);
     PageResponse<?> advanceSearchWithCriteria(int pageNo, int pageSize, String sortBy, String address, String... search);
     PageResponse<?> advanceSearchWithSpecifications(Pageable pageable, String[] user, String[] address);
+
+    User getByUsername(String userName);
 
     long addUser(UserRequestDTO request) throws MessagingException, UnsupportedEncodingException;
 
