@@ -14,7 +14,7 @@ import com.example.samplecode.repository.UserRepository;
 import com.example.samplecode.repository.specification.UserSpec;
 import com.example.samplecode.repository.specification.UserSpecification;
 import com.example.samplecode.repository.specification.UserSpecificationsBuilder;
-import com.example.samplecode.service.MailService;
+//import com.example.samplecode.service.MailService;
 import com.example.samplecode.service.UserService;
 import com.example.samplecode.util.UserStatus;
 import com.example.samplecode.util.UserType;
@@ -27,6 +27,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -45,8 +47,14 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final SearchRepository searchRepository;
-    private final MailService mailService;
+    //    private final MailService mailService;
     private final KafkaTemplate<String, String> kafkaTemplate;
+
+    @Override
+    public UserDetailsService getUserDetailsService() {
+        return username -> userRepository.findUserByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException(Translator.toLocale("user.not.found")));
+    }
 
     @Override
     public PageResponse<?> getAllUsers(int pageNo, int pageSize, String sortBy) {
@@ -58,10 +66,10 @@ public class UserServiceImpl implements UserService {
         List<Sort.Order> sorts = new ArrayList<>();
 
 //        nếu có value
-        if (StringUtils.hasLength(sortBy)){
+        if (StringUtils.hasLength(sortBy)) {
             Pattern pattern = Pattern.compile("(\\w+?)(:)(.*)");
             Matcher matcher = pattern.matcher(sortBy);
-            if (matcher.find()){
+            if (matcher.find()) {
                 if (matcher.group(3).equalsIgnoreCase("asc")) {
                     sorts.add(new Sort.Order(Sort.Direction.ASC, matcher.group(1)));
                 } else {
@@ -88,7 +96,7 @@ public class UserServiceImpl implements UserService {
         for (String sortBy : sorts) {
             Pattern pattern = Pattern.compile(SORT_BY);
             Matcher matcher = pattern.matcher(sortBy);
-            if (matcher.find()){
+            if (matcher.find()) {
                 if (matcher.group(3).equalsIgnoreCase("asc")) {
                     orders.add(new Sort.Order(Sort.Direction.ASC, matcher.group(1)));
                 } else {
@@ -142,7 +150,8 @@ public class UserServiceImpl implements UserService {
                 Matcher matcher = pattern.matcher(s);
                 if (matcher.find()) {
                     builder.with(matcher.group(1), matcher.group(2), matcher.group(3), matcher.group(4), matcher.group(5));
-                    System.out.println("Params: " + builder.params);                }
+                    System.out.println("Params: " + builder.params);
+                }
             }
 
             Page<User> users = userRepository.findAll(Objects.requireNonNull(builder.build()), pageable);
@@ -151,6 +160,11 @@ public class UserServiceImpl implements UserService {
         }
 
         return convertToPageResponse(userRepository.findAll(pageable), pageable);
+    }
+
+    @Override
+    public User getByUsername(String userName) {
+        return userRepository.findUserByUsername(userName).orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
     @Override
@@ -193,9 +207,9 @@ public class UserServiceImpl implements UserService {
                         .build()));
         userRepository.save(user);
 
-        if (user.getId() != null){
-            kafkaTemplate.send("confirm-account-topic", String.format("email=%s,id=%s,code=%s", user.getEmail(), user.getId(), "code@123"));
-        }
+//        if (user.getId() != null){
+//            kafkaTemplate.send("confirm-account-topic", String.format("email=%s,id=%s,code=%s", user.getEmail(), user.getId(), "code@123"));
+//        }
         log.info("User {} added successfully", user.getId());
         return user.getId();
     }

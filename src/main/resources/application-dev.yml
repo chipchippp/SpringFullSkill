@@ -5,13 +5,10 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/postgres}
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/tayJava}
     username: ${POSTGRES_USER:postgres}
     password: ${POSTGRES_PASSWORD:123}
   jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
     show-sql: false
     hibernate:
       ddl-auto: none
@@ -29,10 +26,15 @@ springdoc:
   swagger-ui:
     enabled: true
 
-open:
-  api:
+openapi:
+  service:
+    api-docs: api-service
+    server: http://localhost:${server.port}
     title: ${API_TITLE:DUMMY-API-TITLE}
     version: v1.0.0
     description: Sample Code
-    serverUrl: http://localhost:${server.port}
-    serverName: server test
+jwt:
+  expiryHours: 3600000 # 1 hour
+  expiryDays: 86400000 # 1 day
+  secretKey: 297fb2dd8d41f7542cb6506ffef38b24011082a70aaaf09bdc0e619b5fca242b
+  refreshKey: ClJMlDP88XazYN3/dtv16QggUW9Hj2eUN634idNOa1I=
