@@ -4,10 +4,12 @@ import com.example.samplecode.dto.request.ResetPasswordDTO;
 import com.example.samplecode.dto.request.SignInRequest;
 import com.example.samplecode.dto.response.TokenResponse;
 import com.example.samplecode.exception.InvalidDataException;
+import com.example.samplecode.model.RedisToken;
 import com.example.samplecode.model.Token;
 import com.example.samplecode.model.User;
 import com.example.samplecode.repository.UserRepository;
 import com.example.samplecode.service.JwtService;
+import com.example.samplecode.service.RedisTokenService;
 import com.example.samplecode.service.TokenService;
 import com.example.samplecode.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,7 +37,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
-    private final TokenService tokenService;
+//    private final TokenService tokenService;
+    private final RedisTokenService redisTokenService;
 
     public TokenResponse accessToken(SignInRequest signInRequest) {
         log.info("---------- authenticate ----------");
@@ -60,12 +63,18 @@ public class AuthService {
         String resetToken = jwtService.generateResetToken(user);
 
         // save token to db
-        tokenService.saveToken(Token.builder()
-                .username(user.getUsername())
+        redisTokenService.saveToken(RedisToken.builder()
+                .id(user.getUsername())
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .resetToken(resetToken)
                 .build());
+//        tokenService.saveToken(Token.builder()
+//                .username(user.getUsername())
+//                .accessToken(accessToken)
+//                .refreshToken(refreshToken)
+//                .resetToken(resetToken)
+//                .build());
 
         return TokenResponse.builder()
                 .accessToken(accessToken)
@@ -90,6 +99,14 @@ public class AuthService {
             throw new InvalidDataException("Token is invalid");
         }
         String accessToken = jwtService.generateToken(user);
+        String resetToken = jwtService.generateResetToken(user);
+
+        redisTokenService.saveToken(RedisToken.builder()
+                .id(user.getUsername())
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .resetToken(resetToken)
+                .build());
 
         return TokenResponse.builder()
                 .accessToken(accessToken)
@@ -101,16 +118,16 @@ public class AuthService {
     }
 
     public String removeToken(HttpServletRequest request) {
-        String refreshToken = request.getHeader(REFERER);
-        if (StringUtils.isBlank(refreshToken)) {
+        String token = request.getHeader(REFERER);
+        if (StringUtils.isBlank(token)) {
             throw new InvalidDataException("Token must not be blank");
         }
         //        extract username from token
-        final String username = jwtService.extractUsername(refreshToken, ACCESS_TOKEN);
+        final String username = jwtService.extractUsername(token, ACCESS_TOKEN);
 
-        Token currentToken = tokenService.getByUsername(username);
+//        Token currentToken = tokenService.getByUsername(username);
 
-        tokenService.deleteToken(currentToken);
+        redisTokenService.deleteToken(username);
 
         return "Logout success";
     }
@@ -125,6 +142,18 @@ public class AuthService {
         // generate reset password token
         String resetToken = jwtService.generateResetToken(user);
 
+//        save token to db
+//        tokenService.saveToken(Token.builder()
+//                .username(user.getUsername())
+//                .resetToken(resetToken)
+//                .build());
+
+//        save token to redis
+        redisTokenService.saveToken(RedisToken.builder()
+                .id(user.getUsername())
+                .resetToken(resetToken)
+                .build());
+
         // send email to user
         String confirmLink = String.format("curl --location --request POST 'localhost:8888/api/v1/auth/reset-password' \\\n" +
                 "--header 'Accept: */*' \\\n" +
@@ -137,16 +166,20 @@ public class AuthService {
     public String resetPassword(String secretKey) {
         log.info("reset password token: {}", secretKey);
 
-        final String username = jwtService.extractUsername(secretKey, RESET_TOKEN);
-        var user = userService.getByUsername(username);
-        if (!jwtService.isValid(secretKey, user, RESET_TOKEN)) {
-            throw new InvalidDataException("Token is invalid");
-        }
+        var user = validateToken(secretKey);
+
+//        final String username = jwtService.extractUsername(secretKey, RESET_TOKEN);
+//        var user = userService.getByUsername(username);
+//        if (!jwtService.isValid(secretKey, user, RESET_TOKEN)) {
+//            throw new InvalidDataException("Token is invalid");
+//        }
+
+        redisTokenService.getTokenById(user.getUsername());
         return "Password reset";
     }
 
     public String changePassword(ResetPasswordDTO request) {
-        User user = validateToken(request.getSecretKey());
+        var user = validateToken(request.getSecretKey());
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new InvalidDataException("Password not match");
         }
