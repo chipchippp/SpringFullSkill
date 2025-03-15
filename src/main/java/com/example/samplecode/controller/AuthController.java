@@ -1,5 +1,6 @@
 package com.example.samplecode.controller;
 
+import com.example.samplecode.dto.request.ResetPasswordDTO;
 import com.example.samplecode.dto.request.SignInRequest;
 import com.example.samplecode.dto.response.ResponseData;
 import com.example.samplecode.dto.response.TokenResponse;
@@ -24,18 +25,33 @@ import static org.springframework.http.HttpStatus.OK;
 public class AuthController {
     private final AuthService authService;
 
-    @PostMapping("/access")
+    @PostMapping("/access-token")
     public ResponseEntity<TokenResponse> login(@RequestBody SignInRequest request) {
-        return new ResponseEntity<>(authService.authenticate(request), OK);
+        return new ResponseEntity<>(authService.accessToken(request), OK);
     }
 
-    @PostMapping("/refresh")
+    @PostMapping("/refresh-token")
     public ResponseEntity<TokenResponse> refresh(HttpServletRequest request) {
         return new ResponseEntity<>(authService.refreshToken(request), OK);
     }
 
-    @PostMapping("/logout")
+    @PostMapping("/logout-token")
     public ResponseEntity<String> logout(HttpServletRequest request) {
-        return new ResponseEntity<>(authService.logout(request), OK);
+        return new ResponseEntity<>(authService.removeToken(request), OK);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestBody String email) {
+        return new ResponseEntity<>(authService.forgotPassword(email), OK);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestBody String secretKey) {
+        return new ResponseEntity<>(authService.resetPassword(secretKey), OK);
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<String> changePassword(@RequestBody ResetPasswordDTO request) {
+        return new ResponseEntity<>(authService.changePassword(request), OK);
     }
 }

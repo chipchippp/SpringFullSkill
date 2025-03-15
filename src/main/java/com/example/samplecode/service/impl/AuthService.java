@@ -20,8 +20,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 import static com.example.samplecode.util.TokenType.*;
 import static org.springframework.http.HttpHeaders.REFERER;
 
@@ -98,4 +96,56 @@ public class AuthService {
         return "Logout success";
     }
 
+    public String forgotPassword(String email) {
+        // check email in database
+        User user = userService.getUserByEmail(email);
+        // user is active or inactive
+        if (!user.isEnabled()) {
+            throw new UsernameNotFoundException("User not active");
+        }
+        // generate reset password token
+        String resetToken = jwtService.generateResetToken(user);
+
+        // send email to user
+        String confirmLink = String.format("curl --location --request POST 'localhost:8888/api/v1/auth/reset-password' \\\n" +
+                "--header 'Accept: */*' \\\n" +
+                "--header 'Content-Type: application/json;charset=UTF-8' \\\n" +
+                "--data '%s'", resetToken);
+        log.info("Reset password link: {}", confirmLink);
+        return "Email sent";
+    }
+
+    public String resetPassword(String secretKey) {
+        log.info("reset password token: {}", secretKey);
+
+        final String username = jwtService.extractUsername(secretKey, RESET_TOKEN);
+        var user = userService.getByUsername(username);
+        if (!jwtService.isValid(secretKey, user, RESET_TOKEN)) {
+            throw new InvalidDataException("Token is invalid");
+        }
+        return "Password reset";
+    }
+
+    public String changePassword(ResetPasswordDTO request) {
+        User user = validateToken(request.getSecretKey());
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new InvalidDataException("Password not match");
+        }
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userService.saveUser(user);
+        return "Password changed";
+    }
+
+    private User validateToken(String token) {
+        // validate token
+        var userName = jwtService.extractUsername(token, RESET_TOKEN);
+
+        // validate user is active or not
+        var user = userService.getByUsername(userName);
+        if (!user.isEnabled()) {
+            throw new InvalidDataException("User not active");
+        }
+
+        return user;
+    }
 }

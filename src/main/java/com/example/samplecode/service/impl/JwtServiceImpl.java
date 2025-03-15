@@ -1,5 +1,6 @@
 package com.example.samplecode.service.impl;
 
+import com.example.samplecode.exception.InvalidDataException;
 import com.example.samplecode.service.JwtService;
 import com.example.samplecode.util.TokenType;
 import io.jsonwebtoken.Claims;
@@ -17,8 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import static com.example.samplecode.util.TokenType.ACCESS_TOKEN;
-import static com.example.samplecode.util.TokenType.REFRESH_TOKEN;
+import static com.example.samplecode.util.TokenType.*;
 
 @Service
 public class JwtServiceImpl implements JwtService {
@@ -34,6 +34,9 @@ public class JwtServiceImpl implements JwtService {
 
     @Value("${jwt.refreshKey}")
     private String refreshKey;
+
+    @Value("${jwt.resetKey}")
+    private String resetKey;
 
 
     @Override
@@ -55,6 +58,11 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public String generateRefreshToken(UserDetails user) {
         return generateRefreshToken(new HashMap<>(), user);
+    }
+
+    @Override
+    public String generateResetToken(UserDetails user) {
+        return generateResetToken(new HashMap<>(), user);
     }
 
     private boolean isTokenExpired(String token, TokenType tokenType) {
@@ -85,14 +93,27 @@ public class JwtServiceImpl implements JwtService {
                 .compact();
     }
 
+    private String generateResetToken(Map<String, Object> claims, UserDetails userDetails) {
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + Long.parseLong(expiryHours)))
+                .signWith(getKey(RESET_TOKEN), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
     private Key getKey(TokenType tokenType) {
-        byte[] keyBytes;
-        if (ACCESS_TOKEN.equals(tokenType)) {
-            keyBytes = Decoders.BASE64.decode(secretKey);
-        } else {
-            keyBytes = Decoders.BASE64.decode(refreshKey);
+        switch (tokenType) {
+            case ACCESS_TOKEN:
+                return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
+            case REFRESH_TOKEN:
+                return Keys.hmacShaKeyFor(Decoders.BASE64.decode(refreshKey));
+            case RESET_TOKEN:
+                return Keys.hmacShaKeyFor(Decoders.BASE64.decode(resetKey));
+            default:
+                throw new InvalidDataException("Invalid token type");
         }
-        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     private <T> T extractClaim(String token, TokenType tokenType, Function<Claims, T> claimResolver) {

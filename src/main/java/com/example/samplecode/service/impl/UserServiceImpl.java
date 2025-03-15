@@ -168,6 +168,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User getUserByEmail(String email) {
+        return userRepository.findUserByEmail(email).orElseThrow(() -> new ResourceNotFoundException("Email not found"));
+    }
+
+    @Override
+    public long saveUser(User user) {
+        userRepository.save(user);
+        return user.getId();
+    }
+
+
+    @Override
     public UserDetailResponse getUserId(long userId) {
         User user = getUserById(userId);
         return UserDetailResponse.builder()

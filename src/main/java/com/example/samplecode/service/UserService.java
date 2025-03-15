@@ -25,6 +25,8 @@ public interface UserService {
     PageResponse<?> advanceSearchWithSpecifications(Pageable pageable, String[] user, String[] address);
 
     User getByUsername(String userName);
+    User getUserByEmail(String email);
+    long saveUser(User user);
 
     long addUser(UserRequestDTO request) throws MessagingException, UnsupportedEncodingException;
 
