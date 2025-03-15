@@ -16,9 +16,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 import static com.example.samplecode.util.TokenType.*;
 import static org.springframework.http.HttpHeaders.REFERER;
@@ -34,26 +37,40 @@ public class AuthService {
     private final JwtService jwtService;
     private final TokenService tokenService;
 
-    public TokenResponse accessToken(SignInRequest request) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
-        var user = userService.getByUsername(request.getUsername());
+    public TokenResponse accessToken(SignInRequest signInRequest) {
+        log.info("---------- authenticate ----------");
 
+        var user = userService.getByUsername(signInRequest.getUsername());
+        if (!user.isEnabled()) {
+            throw new InvalidDataException("User not active");
+        }
+
+        List<String> roles = userService.getAllRolesByUserId(user.getId());
+        List<SimpleGrantedAuthority> authorities = roles.stream().map(SimpleGrantedAuthority::new).toList();
+
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        signInRequest.getUsername(),
+                        signInRequest.getPassword(),
+                        authorities));
+
+        // create new access token
         String accessToken = jwtService.generateToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
+        String resetToken = jwtService.generateResetToken(user);
 
-//        save token into database
+        // save token to db
         tokenService.saveToken(Token.builder()
                 .username(user.getUsername())
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
+                .resetToken(resetToken)
                 .build());
 
         return TokenResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .userId(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
                 .build();
     }
 

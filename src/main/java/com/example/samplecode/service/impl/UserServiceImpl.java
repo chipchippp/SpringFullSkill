@@ -263,6 +263,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<String> getAllRolesByUserId(long userId) {
+        return userRepository.findAllRolesByUserId(userId);
+    }
+
+    @Override
     public void deleteUser(long userId) {
         userRepository.deleteById(userId);
         log.info("User {} deleted successfully", userId);

@@ -18,6 +18,7 @@ public record TokenService(TokenRepository tokenRepository) {
             Token currentToken = optional.get();
             currentToken.setAccessToken(token.getAccessToken());
             currentToken.setRefreshToken(token.getRefreshToken());
+            currentToken.setResetToken(token.getResetToken());
             tokenRepository.save(currentToken);
             return currentToken.getId();
         }

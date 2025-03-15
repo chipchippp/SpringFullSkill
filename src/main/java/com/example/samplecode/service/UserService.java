@@ -37,4 +37,6 @@ public interface UserService {
     void changeUserStatus(long userId, UserStatus status);
 
     void confirmUser(long userId, String secretCode);
+
+    List<String> getAllRolesByUserId(long userId);
 }

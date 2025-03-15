@@ -19,6 +19,6 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     Optional<User> findUserByEmail(String email);
     Optional<User> findUserByUsername(String username);
 
-    @Query("SELECT r FROM Role r INNER JOIN UserHasRole ur ON r.id = ur.role.id WHERE ur.user.id = :userId")
-    List<Role> getAllByUserId(Long userId);
+    @Query(value = "select r.name from Role r inner join UserHasRole ur on r.id = ur.user.id where ur.id= :userId")
+    List<String> findAllRolesByUserId(Long userId);
 }
